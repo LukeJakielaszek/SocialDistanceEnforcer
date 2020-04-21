@@ -146,20 +146,21 @@ def plot_data(coords):
     plt.legend(title="Devices", loc="upper right", prop={'size': 25})
     plt.xlabel('Dist (ft)', fontsize=25, fontweight='bold')
     plt.ylabel('RSSI', fontsize=25, fontweight='bold')
-    #plt.savefig("Bluetooth_RSSI_distances")
-    #plt.show()
+    plt.savefig("Bluetooth_RSSI_distances")
+    plt.show()
 
     # return our aggregate data
     return sum_data
 
-def format_knn(sum_data):
+def format_knn(sum_data, bmaps):
     for device, labels in zip(sum_data.keys(), sum_data.values()):
         print(device)
         for label, data in zip(labels.keys(), labels.values()):
             print("\t" + str(label) + ":")
-            ofile_name = "proc_data/" + device + "_" + label + ".txt"
+            ofile_name = "proc_data/" + str(bmaps[device]["class"]) + "_" + str(bmaps[device]["major"]) + "_" + label + ".txt"
+
             print('\tOutput File :' + ofile_name)
-            with open(ofile_name, "w") as ofile:
+            with open(ofile_name, "a") as ofile:
                 for val in data:
                     ofile.write(str(val))
                     ofile.write('\n')
@@ -169,6 +170,7 @@ if __name__ == "__main__":
 
     bmaps = map_files(bluetooth_files, direc)    
 
+    print(bmaps)
     for device in bmaps:
         print(device)
         sum_samples = 0
@@ -184,4 +186,4 @@ if __name__ == "__main__":
 
     sum_data = plot_data(coords)
 
-    format_knn(sum_data)
+    format_knn(sum_data, bmaps)
