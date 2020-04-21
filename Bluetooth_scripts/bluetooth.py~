@@ -1,0 +1,94 @@
+import os
+
+#matplotlib inline
+#config InlineBackend.figure_format = 'retina'
+import matplotlib.pyplot as plt
+
+def map_files(bfiles, direc):
+    bmaps = {}
+    for bfile in bluetooth_files:
+        temp = bfile
+
+        temp = temp.split('_')
+
+        device = temp[0]
+        class_a = temp[2]
+        major = temp[4]
+        dist = temp[5]
+        
+        if not device in bmaps:
+            dev_map = {}
+            dev_map["device"] = device
+            dev_map["class"] = class_a
+            dev_map["major"] = major
+            dev_map["dist"] = {}
+            dev_map["files"] = []
+
+            bmaps[device] = dev_map
+            
+
+        data = get_data(direc + bfile)
+
+        bmaps[device]["dist"][dist] = data
+        
+        bmaps[device]["files"].append(bfile)
+
+    return bmaps
+
+def get_data(bfile):
+    data = []
+    with open(bfile, "r") as bf:
+        lines = bf.readlines()
+
+        for line in lines:
+            line = line.rstrip()
+            line = line.split('|')[1]
+            line= int(line)
+            data.append(line)
+
+    return data
+
+def get_coords(bmaps):
+    print(bmaps)
+    coords = {}
+    for device in bmaps:
+        coords[device] = []
+        dists = bmaps[device]['dist']
+        
+        for dist in dists:
+            for val in dists[dist]:
+                coords[device].append((int(dist), float(val)))
+    return coords
+
+def plot_data(coords):
+    plt.figure(figsize=(25,15))
+    plt.title('Bluetooth Distances', fontsize=25, fontweight='bold')
+    
+    for device in coords:
+        device_coords = coords[device]
+
+
+        #x, y = zip(*device_coords)
+
+        plt.scatter(*zip(*device_coords), label=device)
+        '''
+        for dist in dists:
+            data = dists[dist]
+            print(data)
+            plt.plot(data, 's', label=device)
+        '''
+    plt.legend(prop={'size': 25})
+    plt.xlabel('Dist (ft)', fontsize=25, fontweight='bold')
+    plt.ylabel('RSSI', fontsize=25, fontweight='bold')
+    #    plt.savefig("Bluetooth_RSSI_distances.jpg")
+    plt.show()
+
+if __name__ == "__main__":
+    direc = "./data/"
+    bluetooth_files = os.listdir(direc)
+
+    bmaps = map_files(bluetooth_files, direc)    
+    
+    coords = get_coords(bmaps)
+
+    plot_data(coords)
