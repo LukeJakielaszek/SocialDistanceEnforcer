@@ -54,6 +54,10 @@ public class MainActivity extends AppCompatActivity {
     private File[] inFiles;
     private Map<String, List<Point>> dataMap = new HashMap<>();
 
+    // default key if we have not seen a device type before
+    // we set this to our phone key as I assume phones are the most common mobile device
+    private String default_key = "524_512.txt";
+
     private void initialize_dataset() {
         new Thread() {
             @Override
@@ -343,6 +347,11 @@ public class MainActivity extends AppCompatActivity {
 
     protected float get_distance(short RSSI_val, String class_a, String major){
         String key = class_a + "_" + major + ".txt";
+
+        // if the unknown device is not in our acquired dataset, assume it is a default device
+        if(!dataMap.containsKey(key)){
+            key = default_key;
+        }
 
         // get k closest points
         List<Point> points = getClosestK(dataMap.get(key), RSSI_val, 15);
