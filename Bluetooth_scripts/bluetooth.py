@@ -6,7 +6,7 @@ import sys
 import matplotlib.pyplot as plt
 
 # create a map holding data for each device distance measurements
-def map_files(bfiles, direc):
+def map_files_device(bfiles, direc):
 
     # our device map
     bmaps = {}
@@ -67,7 +67,7 @@ def get_data(bfile):
     return data
 
 # converts a device map into a list of (X,y) coords for each device
-def get_coords(bmaps):
+def get_coords_device(bmaps):
 
     # coordinate mapping
     coords = {}
@@ -80,8 +80,37 @@ def get_coords(bmaps):
         # extract one sample of data as a coordinate where x is distance, y is RSSI value
         for dist in dists:
             for val in dists[dist]:
-                coords[device].append((int(dist), float(val)))
+                coords[device].append((int(dist), int(val)))
 
+    for device in coords:
+        print("NUM_ITEMS_DEVICE ", len(coords[device]))
+        
+    # return our extracted coord lists
+    return coords
+
+# converts a class map into a list of (X,y) coords for each class
+def get_coords_class(bmaps):
+    # coordinate mapping
+    coords = {}
+
+    # loop through each device
+    for device, dists in zip(bmaps.keys(), bmaps.values()):
+        # construct our class key
+        coord_key = dists["class"] + "_" + dists["major"]
+
+        # if we have not seen a key, initialize one
+        if not coord_key in coords:
+            coords[coord_key] = []
+
+        dists = dists["dist"]
+        # extract one sample of data as a coordinate where x is distance, y is RSSI value
+        for dist in dists:
+            for val in dists[dist]:
+                coords[coord_key].append((int(dist), int(val)))
+
+    for device in coords:
+        print("NUM_ITEMS_CLASS " , len(coords[device]))
+                
     # return our extracted coord lists
     return coords
 
@@ -103,7 +132,7 @@ def plot_data(coords):
 
         # extract x and y vectors for all coords
         x,y = zip(*device_coords)
-        
+
         print("\t\tTotal X [" + str(len(x)) + "]")
         print("\t\tTotal Y [" + str(len(y)) + "]")
 
@@ -152,23 +181,27 @@ def plot_data(coords):
     # return our aggregate data
     return sum_data
 
-def format_knn(sum_data, bmaps):
-    for device, labels in zip(sum_data.keys(), sum_data.values()):
-        print(device)
-        for label, data in zip(labels.keys(), labels.values()):
-            print("\t" + str(label) + ":")
-            ofile_name = "proc_data/" + str(bmaps[device]["class"]) + "_" + str(bmaps[device]["major"]) + "_" + label + ".txt"
+# format and save our info to files
+def format_output(sum_data, coords):
+    print(sum_data)
+    for major, dicts in zip(sum_data.keys(), sum_data.values()):
+        print(major)
 
-            print('\tOutput File :' + ofile_name)
-            with open(ofile_name, "a") as ofile:
-                for val in data:
-                    ofile.write(str(val))
-                    ofile.write('\n')
+        ofile_name = "proc_data/" + major + ".txt"
+        print('\tOutput File :' + ofile_name)
+        with open(ofile_name, "a") as ofile:
+            xdata = dicts["x"]
+            ydata = dicts["y"]
+            count_data = dicts["count"]
+
+            for x,y,z in zip(xdata,ydata,count_data):
+                ofile.write(str(x) + "," + str(y) + "," + str(z) + "\n")
+    
 if __name__ == "__main__":
     direc = sys.argv[1]
     bluetooth_files = os.listdir(direc)
 
-    bmaps = map_files(bluetooth_files, direc)    
+    bmaps = map_files_device(bluetooth_files, direc)    
 
     print(bmaps)
     for device in bmaps:
@@ -182,8 +215,14 @@ if __name__ == "__main__":
 
         print("\t\tTotal Samples [" + str(sum_samples) + "]")
 
-    coords = get_coords(bmaps)
+    coords_device = get_coords_device(bmaps)
+    coords_class = get_coords_class(bmaps)
 
-    sum_data = plot_data(coords)
+    # plot data by device
+    sum_data = plot_data(coords_device)
 
-    format_knn(sum_data, bmaps)
+    # plot data by class
+    sum_data_class = plot_data(coords_class)
+
+    # save our info to files
+    format_output(sum_data_class, coords_class)
