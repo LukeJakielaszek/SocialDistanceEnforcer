@@ -20,6 +20,7 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
     private String inDir = "/data";
     private File[] inFiles;
     private Map<String, List<Point>> dataMap = new HashMap<>();
+    private ArrayList<Device> deviceList = new ArrayList<>();
+    ListView listView;
+    DeviceAdapter deviceAdapter;
 
     // default key if we have not seen a device type before
     // we set this to our phone key as I assume phones are the most common mobile device
@@ -148,6 +152,11 @@ public class MainActivity extends AppCompatActivity {
         this.connectButton = findViewById(R.id.connectButton);
         this.disconnectButton = findViewById(R.id.disconnectButton);
         this.statusText = findViewById(R.id.statusText);
+        this.listView = findViewById(R.id.deviceList);
+
+        // flush devicelist to screen
+        deviceAdapter = new DeviceAdapter(MainActivity.this, deviceList);
+        listView.setAdapter(deviceAdapter);
 
         // get our knn dataset from disk
         initialize_dataset();
@@ -217,8 +226,6 @@ public class MainActivity extends AppCompatActivity {
                     toastText = "Found device: " + pairedDevice.getName() + "|" + lastUsedRemoteDevice;
                     Toast.makeText(MainActivity.this, toastText, Toast.LENGTH_SHORT).show();
                     remoteDevice = pairedDevice;
-
-
                 }
             }
         }else{
@@ -273,11 +280,23 @@ public class MainActivity extends AppCompatActivity {
                 float distance = get_distance(RSSI_val, Integer.toString(remoteDevice.getBluetoothClass().getDeviceClass()),
                         Integer.toString(remoteDevice.getBluetoothClass().getMajorDeviceClass()));
 
+                Device curDevice = new Device(remoteDevice.getName(), distance);
+                deviceList.add(curDevice);
+                ((DeviceAdapter)listView.getAdapter()).notifyDataSetChanged();
+
                 Log.d(DEBUG_TAG, remoteDevice.getName() + ": distance [" + distance + "]");
 
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 // reset bluetooth discovery after 10 seconds
                 Log.d(DEBUG_TAG, "Discovery finished, relaunching");
+
+                // display all seen devices
+                for(Device temp : deviceList){
+                    Log.d(DEBUG_TAG, "\t" + temp.name + " : " + temp.distance + " ft");
+                }
+
+                deviceList.clear();
+
                 findDevices();
             }
 
