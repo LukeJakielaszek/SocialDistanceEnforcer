@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Debug;
 import android.os.Environment;
@@ -282,6 +283,12 @@ public class MainActivity extends AppCompatActivity {
 
                 Device curDevice = new Device(remoteDevice.getName(), distance);
                 deviceList.add(curDevice);
+                if(curDevice.distance < 6){
+                    // play an alarm
+                    MediaPlayer mp = MediaPlayer.create(MainActivity.this, R.raw.alarm_loud);
+                    mp.start();
+                }
+
                 ((DeviceAdapter)listView.getAdapter()).notifyDataSetChanged();
 
                 Log.d(DEBUG_TAG, remoteDevice.getName() + ": distance [" + distance + "]");
