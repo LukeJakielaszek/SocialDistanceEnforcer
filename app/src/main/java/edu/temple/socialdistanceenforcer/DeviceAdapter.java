@@ -15,19 +15,23 @@ import java.util.List;
 import java.util.Map;
 
 public class DeviceAdapter extends BaseAdapter {
+    // our current list of devices
     List<Device> deviceList;
     Context context;
 
+    // set our device list
     public DeviceAdapter(Context context, ArrayList<Device> deviceList){
         this.deviceList = deviceList;
         this.context = context;
     }
 
+    // return the number of devices for the adapter
     @Override
     public int getCount() {
         return deviceList.size();
     }
 
+    // get the device at position
     @Override
     public Object getItem(int position) {
         return deviceList.get(position);
@@ -38,8 +42,10 @@ public class DeviceAdapter extends BaseAdapter {
         return 0;
     }
 
+    // generate a textview for the current device
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        // recycle the textview if possible
         TextView textView;
         if(convertView instanceof TextView){
             textView = (TextView)convertView;
@@ -47,6 +53,7 @@ public class DeviceAdapter extends BaseAdapter {
             textView = new TextView(context);
         }
 
+        // convert the item to device
         Device temp = (Device)this.getItem(position);
 
         // display nearby devices with distance
@@ -60,9 +67,12 @@ public class DeviceAdapter extends BaseAdapter {
             textView.setBackgroundColor(Color.RED);
             textView.setTextColor(Color.WHITE);
         }else{
+            // otherwise white
             textView.setBackgroundColor(Color.WHITE);
             textView.setTextColor(Color.BLACK);
         }
+
+        // return our textview
         return textView;
     }
 }
